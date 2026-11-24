@@ -77,7 +77,7 @@ export default function ProfileView({ onLogin, onPropose, onOpenPlay }: { onLogi
                     <span className="list-sub"><Stars value={e.rating} size={13} /> · {contextEmoji(e.context)} {contextLabel(e.context)} · {fmtDate(e.date)}{e.wingman && ' · con wingman'}</span>
                     {e.note && <span className="list-note hand">“{e.note}”</span>}
                   </span>
-                  <button className="icon-btn" aria-label={`Borrar registro de ${titleOf(e.play_id)}`} onClick={() => { if (confirm('¿Borrar este registro?')) void run(() => api.deleteExecution(e.id), 'Registro borrado.') }}>🗑</button>
+                  <ConfirmButton label={`Borrar registro de ${titleOf(e.play_id)}`} onConfirm={() => void run(() => api.deleteExecution(e.id), 'Registro borrado.')} />
                 </div>
               </li>
             ))}
@@ -93,7 +93,7 @@ export default function ProfileView({ onLogin, onPropose, onOpenPlay }: { onLogi
               <li key={p.id}>
                 <div>
                   <span className="list-main"><span className="list-title">{i + 1}. {p.title}</span><span className="list-sub">por {p.author_name}</span></span>
-                  <button className="icon-btn" aria-label={`Quitar ${p.title} del libro`} onClick={() => { if (confirm(`¿Arrancar "${p.title}" del libro? Se borran también sus registros.`)) void run(() => api.deletePlay(p.id), 'Página arrancada.') }}>🗑</button>
+                  <ConfirmButton label={`Arrancar ${p.title} del libro`} onConfirm={() => void run(() => api.deletePlay(p.id), 'Página arrancada, con sus registros.')} />
                 </div>
               </li>
             ))}
@@ -112,6 +112,8 @@ function Review({ play }: { play: Play }) {
   const [title, setTitle] = useState(play.title)
   const [description, setDescription] = useState(play.description)
   const [busy, setBusy] = useState(false)
+  const [rejecting, setRejecting] = useState(false)
+  const [reason, setReason] = useState('')
   const valid = title.trim().length >= 3 && description.trim().length >= 10
 
   const act = async (fn: () => Promise<void>, msg: string) => {
@@ -125,13 +127,20 @@ function Review({ play }: { play: Play }) {
       <p className="review-by">de <b>{play.author_name}</b> · {fmtDate(play.created_at.slice(0, 10))}</p>
       <input value={title} onChange={e => setTitle(e.target.value)} maxLength={LIMITS.title} aria-label="Título" />
       <textarea value={description} onChange={e => setDescription(e.target.value)} rows={5} maxLength={LIMITS.description} aria-label="Descripción" />
-      <div className="row">
-        <button className="btn ghost danger grow" disabled={busy} onClick={() => {
-          const reason = prompt('Motivo del rechazo (opcional, lo ve el autor):')
-          if (reason !== null) void act(() => api.rejectPlay(play.id, reason.trim() || null), 'Propuesta rechazada.')
-        }}>Rechazar</button>
-        <button className="btn primary grow" disabled={busy || !valid} onClick={() => act(() => api.approvePlay(play.id, { title: title.trim(), description: description.trim() }), '¡Aprobada! Ya es una página del libro.')}>Aprobar</button>
-      </div>
+      {rejecting ? (
+        <>
+          <input value={reason} onChange={e => setReason(e.target.value)} maxLength={140} placeholder="Motivo (opcional, lo ve el autor)" aria-label="Motivo del rechazo" autoFocus />
+          <div className="row">
+            <button className="btn ghost grow" disabled={busy} onClick={() => setRejecting(false)}>Volver</button>
+            <button className="btn ghost danger grow" disabled={busy} onClick={() => act(() => api.rejectPlay(play.id, reason.trim() || null), 'Propuesta rechazada.')}>Rechazar</button>
+          </div>
+        </>
+      ) : (
+        <div className="row">
+          <button className="btn ghost danger grow" disabled={busy} onClick={() => setRejecting(true)}>Rechazar</button>
+          <button className="btn primary grow" disabled={busy || !valid} onClick={() => act(() => api.approvePlay(play.id, { title: title.trim(), description: description.trim() }), '¡Aprobada! Ya es una página del libro.')}>Aprobar</button>
+        </div>
+      )}
     </article>
   )
 }
@@ -140,7 +149,34 @@ function DemoNote() {
   return (
     <div className="demo-box">
       <span>Modo demo: los datos viven sólo en este navegador. Con las variables de Supabase cargadas pasa a datos reales.</span>
-      <div><button className="btn ghost small" onClick={() => { if (confirm('¿Volver a los datos de ejemplo?')) { resetMock(); location.reload() } }}>Reiniciar datos de ejemplo</button></div>
+      <div><ResetButton /></div>
     </div>
+  )
+}
+
+/** Borrado en dos toques: el primero arma el botón, el segundo confirma. */
+function ConfirmButton({ label, onConfirm }: { label: string; onConfirm(): void }) {
+  const [armed, setArmed] = useState(false)
+  return (
+    <button
+      className={`icon-btn confirm-btn${armed ? ' armed' : ''}`}
+      aria-label={armed ? `Confirmar: ${label}` : label}
+      onBlur={() => setArmed(false)}
+      onClick={() => {
+        if (!armed) { setArmed(true); setTimeout(() => setArmed(false), 3500); return }
+        onConfirm()
+      }}
+    >{armed ? '¿Seguro?' : '🗑'}</button>
+  )
+}
+
+function ResetButton() {
+  const [armed, setArmed] = useState(false)
+  return (
+    <button className="btn ghost small" onBlur={() => setArmed(false)} onClick={() => {
+      if (!armed) { setArmed(true); return }
+      resetMock()
+      location.reload()
+    }}>{armed ? 'Tocá de nuevo para confirmar' : 'Reiniciar datos de ejemplo'}</button>
   )
 }

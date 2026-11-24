@@ -27,6 +27,7 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { height: 100%; margin: 0; }
+:root { color-scheme: dark; }
 body {
   background: var(--leather);
   color: var(--paper);
@@ -45,7 +46,7 @@ fieldset { border: 0; min-width: 0; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 .app {
-  height: 100dvh;
+  height: 100%;
   max-width: 520px;
   margin: 0 auto;
   display: flex;
@@ -389,3 +390,5 @@ input:focus, textarea:focus { outline: none; border-color: var(--ink); backgroun
   :root { --flip: .01s linear; }
   .cover-hint, .splash-book, .sheet, .toast { animation: none; }
 }
+
+.confirm-btn.armed { width: auto; padding: 0 10px; border-radius: 8px; background: var(--red); color: #fff; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
