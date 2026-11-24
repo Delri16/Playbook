@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#17110d"/>
+  <rect x="96" y="64" width="320" height="384" rx="14" fill="#0d0907" stroke="#c9a24b" stroke-width="6"/>
+  <rect x="118" y="86" width="276" height="340" rx="6" fill="none" stroke="#c9a24b" stroke-width="2"/>
+  <text x="256" y="236" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="54" fill="#d9b55e">THE</text>
+  <text x="256" y="300" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="50" fill="#d9b55e">PLAYBOOK</text>
+</svg>
